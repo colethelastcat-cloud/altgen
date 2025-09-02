@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Roblox Accounts</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #1a1a1a;
+            color: #f0f0f0;
+        }
+        .container {
+            max-width: 48rem;
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen p-4">
+
+    <!-- Main Container -->
+    <div class="container bg-[#2a2a2a] p-8 md:p-12 rounded-2xl shadow-lg border border-gray-700 w-full text-center">
+        <!-- Title & Subtitle -->
+        <h1 class="text-3xl md:text-4xl font-extrabold text-[#00a2ff] mb-2">My Roblox Accounts</h1>
+        <p class="text-gray-400 mb-6 font-semibold">Retrieve and manage your stored accounts.</p>
+        
+        <!-- Loading & Auth Info -->
+        <div id="status-message" class="text-gray-400 text-center mb-4 hidden">
+            <p id="loading-message" class="animate-pulse">Connecting to database...</p>
+            <p id="user-id-display" class="hidden text-xs mt-2"></p>
+        </div>
+
+        <!-- App Container -->
+        <div id="app-container" class="space-y-8 hidden">
+            <!-- Main View -->
+            <div id="main-view" class="space-y-8">
+                <!-- Get Account Section -->
+                <div class="bg-[#3a3a3a] p-6 rounded-xl border border-gray-600">
+                    <h2 class="text-xl font-bold mb-4">Get an Account</h2>
+                    <div id="generator-section">
+                        <button id="get-account-btn" class="w-full bg-[#00a2ff] hover:bg-[#008de0] text-white font-bold py-3 px-6 rounded-xl transition duration-300 transform hover:scale-105 shadow-md">
+                            Get Unused Account
+                        </button>
+                        <div id="no-accounts-message" class="text-yellow-400 mt-4 hidden">
+                            <p>Out of stock.</p>
+                        </div>
+                    </div>
+
+                    <!-- Result Display Section -->
+                    <div id="result-section" class="mt-6 hidden">
+                        <p class="text-sm text-gray-400 mb-2">Account retrieved and marked as used:</p>
+                        <div class="bg-[#4a4a4a] p-4 rounded-xl border border-gray-500 space-y-4">
+                            
+                            <!-- Username -->
+                            <div class="flex flex-col items-start w-full">
+                                <label class="text-sm text-gray-300 mb-1">Username</label>
+                                <div class="flex items-center w-full">
+                                    <span id="username-display" class="bg-[#5a5a5a] text-gray-200 font-mono text-base py-2 px-4 rounded-l-lg w-full truncate text-left"></span>
+                                    <button onclick="copyToClipboard('username-display')" class="bg-gray-600 hover:bg-gray-700 text-white p-2 rounded-r-lg transition duration-200">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                            <path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" />
+                                            <path d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z" />
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Password -->
+                            <div class="flex flex-col items-start w-full">
+                                <label class="text-sm text-gray-300 mb-1">Password</label>
+                                <div class="flex items-center w-full">
+                                    <span id="password-display" class="bg-[#5a5a5a] text-gray-200 font-mono text-base py-2 px-4 rounded-l-lg w-full truncate text-left"></span>
+                                    <button onclick="copyToClipboard('password-display')" class="bg-gray-600 hover:bg-gray-700 text-white p-2 rounded-r-lg transition duration-200">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                            <path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" />
+                                            <path d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z" />
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <!-- Feedback message -->
+                            <div id="copy-message" class="text-sm text-green-400 mt-2 hidden"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- List of All Accounts -->
+                <div class="bg-[#3a3a3a] p-6 rounded-xl border border-gray-600 text-left">
+                    <h2 class="text-xl font-bold mb-4">My Stored Accounts</h2>
+                    <div id="accounts-list" class="space-y-2 max-h-64 overflow-y-auto">
+                        <!-- Accounts will be dynamically added here -->
+                    </div>
+                    <div id="list-message" class="text-gray-400 mt-4 hidden">Loading accounts...</div>
+                </div>
+
+                <!-- Admin Login Button -->
+                <button id="admin-login-btn" class="w-full bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-xl transition duration-300 transform hover:scale-105 shadow-md">
+                    Admin Login
+                </button>
+            </div>
+
+            <!-- Admin View (initially hidden) -->
+            <div id="admin-view" class="space-y-8 hidden">
+                <!-- Login View -->
+                <div id="login-view" class="bg-[#3a3a3a] p-6 rounded-xl border border-gray-600">
+                    <h2 class="text-xl font-bold mb-4">Admin Login</h2>
+                    <div class="mb-4 text-left">
+                        <label for="admin-username" class="block text-sm font-medium text-gray-400">Username</label>
+                        <input type="text" id="admin-username" class="mt-1 block w-full bg-[#4a4a4a] text-gray-200 p-2 rounded-lg border border-gray-600 focus:outline-none focus:ring-2 focus:ring-[#00a2ff]">
+                    </div>
+                    <div class="mb-4 text-left">
+                        <label for="admin-password" class="block text-sm font-medium text-gray-400">Password</label>
+                        <input type="password" id="admin-password" class="mt-1 block w-full bg-[#4a4a4a] text-gray-200 p-2 rounded-lg border border-gray-600 focus:outline-none focus:ring-2 focus:ring-[#00a2ff]">
+                    </div>
+                    <button id="login-btn" class="w-full bg-[#00a2ff] hover:bg-[#008de0] text-white font-bold py-2 px-4 rounded-xl transition duration-300 transform hover:scale-105 shadow-md">
+                        Login
+                    </button>
+                    <p id="login-status" class="text-sm mt-4 text-red-400 hidden"></p>
+                </div>
+                
+                <!-- Bulk Add Accounts Section (initially hidden) -->
+                <div id="bulk-add-view" class="bg-[#3a3a3a] p-6 rounded-xl border border-gray-600 text-left hidden">
+                    <h2 class="text-xl font-bold mb-4">Bulk Add Accounts</h2>
+                    <p class="text-sm text-gray-400 mb-4">Paste accounts in the format `username:password`, one per line.</p>
+                    <textarea id="bulk-accounts" placeholder="e.g.,
+username1:password1
+username2:password2" rows="5" class="w-full bg-[#4a4a4a] text-gray-200 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00a2ff]"></textarea>
+                    <button id="bulk-add-btn" class="w-full bg-[#00a2ff] hover:bg-[#008de0] text-white font-bold py-2 px-4 rounded-xl transition duration-300 transform hover:scale-105 shadow-md mt-4">
+                        Add Accounts
+                    </button>
+                    <p id="bulk-add-status" class="text-sm mt-2 hidden"></p>
+                </div>
+
+                <!-- Back to Main Page Button -->
+                <button id="back-btn" class="w-full bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-xl transition duration-300 transform hover:scale-105 shadow-md">
+                    Back to Main Page
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, addDoc, setDoc, updateDoc, deleteDoc, onSnapshot, collection, query, where, getDocs, limit, orderBy } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Firebase-provided variables
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+        // UI Elements
+        const statusMessage = document.getElementById('status-message');
+        const loadingMessage = document.getElementById('loading-message');
+        const userIdDisplay = document.getElementById('user-id-display');
+        const appContainer = document.getElementById('app-container');
+        const getAccountBtn = document.getElementById('get-account-btn');
+        const noAccountsMessage = document.getElementById('no-accounts-message');
+        const resultSection = document.getElementById('result-section');
+        const usernameDisplay = document.getElementById('username-display');
+        const passwordDisplay = document.getElementById('password-display');
+        const copyMessage = document.getElementById('copy-message');
+        const accountsList = document.getElementById('accounts-list');
+        const listMessage = document.getElementById('list-message');
+        const bulkAccountsInput = document.getElementById('bulk-accounts');
+        const bulkAddBtn = document.getElementById('bulk-add-btn');
+        const bulkAddStatus = document.getElementById('bulk-add-status');
+        const adminLoginBtn = document.getElementById('admin-login-btn');
+        const mainView = document.getElementById('main-view');
+        const adminView = document.getElementById('admin-view');
+        const backBtn = document.getElementById('back-btn');
+
+        // Admin login elements
+        const loginView = document.getElementById('login-view');
+        const bulkAddView = document.getElementById('bulk-add-view');
+        const adminUsernameInput = document.getElementById('admin-username');
+        const adminPasswordInput = document.getElementById('admin-password');
+        const loginBtn = document.getElementById('login-btn');
+        const loginStatus = document.getElementById('login-status');
+
+        let db, auth, userId;
+        let isAuthReady = false;
+        
+        // Initialize Firebase and Authentication
+        async function initializeFirebase() {
+            try {
+                const app = initializeApp(firebaseConfig);
+                db = getFirestore(app);
+                auth = getAuth(app);
+                statusMessage.classList.remove('hidden');
+
+                // Sign in with the provided token or anonymously
+                if (initialAuthToken) {
+                    await signInWithCustomToken(auth, initialAuthToken);
+                } else {
+                    await signInAnonymously(auth);
+                }
+
+                // Listen for auth state changes
+                onAuthStateChanged(auth, (user) => {
+                    if (user) {
+                        userId = user.uid;
+                        isAuthReady = true;
+                        userIdDisplay.textContent = `User ID: ${userId}`;
+                        userIdDisplay.classList.remove('hidden');
+                        statusMessage.classList.add('hidden');
+                        appContainer.classList.remove('hidden');
+                        setupRealtimeListener(userId);
+                    } else {
+                        // User is signed out
+                        console.log("User is signed out");
+                    }
+                });
+            } catch (error) {
+                console.error("Firebase initialization error:", error);
+                statusMessage.classList.remove('hidden');
+                loadingMessage.textContent = "Error: Failed to connect.";
+            }
+        }
+
+        // Setup real-time listener for accounts
+        function setupRealtimeListener(uid) {
+            const accountsCol = collection(db, `artifacts/${appId}/users/${uid}/my_accounts`);
+            
+            listMessage.classList.remove('hidden');
+            
+            onSnapshot(accountsCol, (snapshot) => {
+                accountsList.innerHTML = ''; // Clear the list
+                let hasUnusedAccounts = false;
+                if (snapshot.empty) {
+                     accountsList.innerHTML = `<p class="text-gray-500">No accounts stored yet.</p>`;
+                } else {
+                    snapshot.forEach(doc => {
+                        const data = doc.data();
+                        if (!data.used) {
+                            hasUnusedAccounts = true;
+                        }
+                        const accountItem = document.createElement('div');
+                        accountItem.className = 'flex justify-between items-center p-2 rounded-lg' + (data.used ? ' bg-gray-600 text-gray-400' : ' bg-blue-900 text-white');
+                        accountItem.innerHTML = `
+                            <div class="flex-grow">
+                                <p class="font-semibold">${data.username}</p>
+                            </div>
+                            <span class="text-xs font-medium">${data.used ? 'Used' : 'Unused'}</span>
+                        `;
+                        accountsList.appendChild(accountItem);
+                    });
+                }
+                
+                // Show/hide no accounts message and enable/disable button
+                if (hasUnusedAccounts) {
+                    noAccountsMessage.classList.add('hidden');
+                    getAccountBtn.textContent = 'Get Unused Account';
+                    getAccountBtn.disabled = false;
+                } else {
+                    noAccountsMessage.classList.remove('hidden');
+                    getAccountBtn.textContent = 'Out of Stock';
+                    getAccountBtn.disabled = true;
+                }
+                listMessage.classList.add('hidden');
+            }, (error) => {
+                console.error("Error fetching accounts: ", error);
+                listMessage.textContent = "Error loading accounts.";
+            });
+        }
+
+        // Handle bulk account addition
+        bulkAddBtn.addEventListener('click', async () => {
+            if (!isAuthReady) {
+                bulkAddStatus.textContent = "Authentication not ready. Please wait.";
+                bulkAddStatus.className = 'text-sm mt-2 text-red-400';
+                bulkAddStatus.classList.remove('hidden');
+                return;
+            }
+
+            const accountsText = bulkAccountsInput.value.trim();
+            if (!accountsText) {
+                bulkAddStatus.textContent = "Paste accounts in the text area first.";
+                bulkAddStatus.className = 'text-sm mt-2 text-red-400';
+                bulkAddStatus.classList.remove('hidden');
+                return;
+            }
+
+            const lines = accountsText.split('\n').filter(line => line.trim() !== '');
+            const accountsCol = collection(db, `artifacts/${appId}/users/${userId}/my_accounts`);
+            
+            bulkAddStatus.classList.remove('hidden');
+            bulkAddStatus.textContent = 'Adding accounts...';
+            
+            let successCount = 0;
+            let errorCount = 0;
+
+            for (const line of lines) {
+                const parts = line.split(':');
+                if (parts.length === 2) {
+                    const username = parts[0].trim();
+                    const password = parts[1].trim();
+                    if (username && password) {
+                        try {
+                            await addDoc(accountsCol, {
+                                username,
+                                password,
+                                used: false,
+                                createdAt: new Date()
+                            });
+                            successCount++;
+                        } catch (error) {
+                            console.error(`Error adding account ${username}:`, error);
+                            errorCount++;
+                        }
+                    } else {
+                        errorCount++;
+                    }
+                } else {
+                    errorCount++;
+                }
+            }
+
+            bulkAddStatus.textContent = `Upload complete! ${successCount} accounts added, ${errorCount} failed.`;
+            bulkAccountsInput.value = '';
+            setTimeout(() => {
+                bulkAddStatus.classList.add('hidden');
+            }, 5000);
+        });
+
+        // Get an unused account and mark it as used
+        getAccountBtn.addEventListener('click', async () => {
+            const accountsCol = collection(db, `artifacts/${appId}/users/${userId}/my_accounts`);
+            // Find the first unused account
+            const q = query(accountsCol, where("used", "==", false), limit(1));
+            
+            try {
+                const querySnapshot = await getDocs(q);
+                if (!querySnapshot.empty) {
+                    const docToUpdate = querySnapshot.docs[0];
+                    const accountData = docToUpdate.data();
+
+                    // Display account details
+                    usernameDisplay.textContent = accountData.username;
+                    passwordDisplay.textContent = accountData.password;
+                    resultSection.classList.remove('hidden');
+                    copyMessage.classList.add('hidden');
+
+                    // Mark the account as used
+                    const docRef = doc(db, `artifacts/${appId}/users/${userId}/my_accounts`, docToUpdate.id);
+                    await updateDoc(docRef, { used: true });
+
+                } else {
+                    // This block should technically not be reached if the button is disabled correctly
+                    console.log("No unused accounts found.");
+                }
+            } catch (error) {
+                console.error("Error getting or adding account: ", error);
+                usernameDisplay.textContent = 'Error';
+                passwordDisplay.textContent = 'Error';
+                resultSection.classList.remove('hidden');
+            }
+        });
+
+        // Function to copy text to clipboard
+        function copyToClipboard(elementId) {
+            const textToCopy = document.getElementById(elementId).textContent;
+            const tempTextArea = document.createElement('textarea');
+            tempTextArea.value = textToCopy;
+            document.body.appendChild(tempTextArea);
+            tempTextArea.select();
+            
+            try {
+                document.execCommand('copy');
+                copyMessage.textContent = 'Copied to clipboard!';
+                copyMessage.className = 'text-sm text-green-400 mt-2';
+                copyMessage.classList.remove('hidden');
+            } catch (err) {
+                copyMessage.textContent = 'Failed to copy text.';
+                copyMessage.className = 'text-sm text-red-400 mt-2';
+                copyMessage.classList.remove('hidden');
+                console.error('Copy to clipboard failed:', err);
+            } finally {
+                document.body.removeChild(tempTextArea);
+                setTimeout(() => {
+                    copyMessage.classList.add('hidden');
+                }, 2000);
+            }
+        }
+        
+        // Admin View Navigation
+        adminLoginBtn.addEventListener('click', () => {
+            mainView.classList.add('hidden');
+            adminView.classList.remove('hidden');
+            loginView.classList.remove('hidden');
+            bulkAddView.classList.add('hidden');
+        });
+
+        // Login Logic
+        loginBtn.addEventListener('click', () => {
+            const username = adminUsernameInput.value;
+            const password = adminPasswordInput.value;
+
+            // This is a simple, hardcoded check. For a real app, you would use a secure authentication service.
+            if (username === "Auaqa" && password === "Bellenk1") {
+                loginView.classList.add('hidden');
+                bulkAddView.classList.remove('hidden');
+                loginStatus.classList.add('hidden');
+            } else {
+                loginStatus.textContent = "Invalid username or password.";
+                loginStatus.classList.remove('hidden');
+            }
+        });
+
+        backBtn.addEventListener('click', () => {
+            adminView.classList.add('hidden');
+            mainView.classList.remove('hidden');
+            // Re-run the listener to update the list with new accounts
+            if (isAuthReady) {
+                setupRealtimeListener(userId);
+            }
+        });
+
+        initializeFirebase();
+    </script>
+</body>
+</html>
