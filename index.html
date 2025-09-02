@@ -197,6 +197,9 @@
 </div>
 
 <script>
+    // ** IMPORTANT: Replace 'YOUR_VERCEL_URL' with your actual website URL (e.g., https://altgen-lovat.vercel.app) **
+    const API_URL = 'YOUR_VERCEL_URL/api/get-account';
+
     const getAccountBtn = document.getElementById('get-account-btn');
     const displayUsername = document.getElementById('display-username');
     const displayPassword = document.getElementById('display-password');
@@ -213,7 +216,7 @@
     const loginBtn = document.getElementById('login-btn');
     const adminUsernameInput = document.getElementById('admin-username');
     const adminPasswordInput = document.getElementById('admin-password');
-    const adminLogoutBtn = document = document.getElementById('admin-logout-btn');
+    const adminLogoutBtn = document.getElementById('admin-logout-btn');
 
     const bulkAccountsInput = document.getElementById('bulk-accounts-input');
     const addBulkBtn = document.getElementById('add-bulk-btn');
@@ -242,7 +245,7 @@
         statusMessageDiv.classList.add('hidden');
 
         try {
-            const response = await fetch('/api/get-account');
+            const response = await fetch(API_URL);
             const data = await response.json();
 
             if (data.status === 'ok') {
@@ -278,7 +281,7 @@
         addStatusMessageDiv.classList.add('hidden');
 
         try {
-            const response = await fetch('/api/get-account', {
+            const response = await fetch(API_URL, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
