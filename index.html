@@ -196,9 +196,7 @@
     </div>
 </div>
 
-<script type="module">
-    import { sql } from '@vercel/postgres';
-
+<script>
     const getAccountBtn = document.getElementById('get-account-btn');
     const displayUsername = document.getElementById('display-username');
     const displayPassword = document.getElementById('display-password');
@@ -237,47 +235,24 @@
         modal.classList.add('hidden');
     });
 
-    async function ensureTableExists() {
-        try {
-            await sql`CREATE TABLE IF NOT EXISTS accounts (
-                id SERIAL PRIMARY KEY,
-                username VARCHAR(255) NOT NULL,
-                password VARCHAR(255) NOT NULL,
-                used BOOLEAN NOT NULL
-            );`;
-            return true;
-        } catch (error) {
-            console.error('Error creating table:', error);
-            showModal("Error: Failed to connect to the database. Please check your project settings.");
-            return false;
-        }
-    }
-
     async function getUnusedAccount() {
-        if (! await ensureTableExists()) {
-            return;
-        }
-
         getAccountBtn.disabled = true;
         getAccountBtn.textContent = 'Searching...';
         accountInfoDiv.classList.add('hidden');
         statusMessageDiv.classList.add('hidden');
 
         try {
-            const { rows: accounts } = await sql`SELECT * FROM accounts WHERE used = false ORDER BY id ASC LIMIT 1;`;
-            
-            if (accounts.length > 0) {
-                const account = accounts[0];
+            const response = await fetch('/api/get-account');
+            const data = await response.json();
+
+            if (data.status === 'ok') {
+                const account = data.account;
                 displayUsername.textContent = account.username;
                 displayPassword.textContent = account.password;
                 accountInfoDiv.classList.remove('hidden');
-
-                await sql`UPDATE accounts SET used = true WHERE id = ${account.id};`;
-
                 showModal("Account retrieved successfully! It has been marked as used.");
-
             } else {
-                statusMessageDiv.textContent = 'Out of stock.';
+                statusMessageDiv.textContent = data.message;
                 statusMessageDiv.classList.remove('hidden');
                 accountInfoDiv.classList.add('hidden');
             }
@@ -291,43 +266,44 @@
     }
 
     async function addAccountsBulk() {
-        if (! await ensureTableExists()) {
+        const accountsText = bulkAccountsInput.value;
+        if (!accountsText.trim()) {
+            addStatusMessageDiv.textContent = 'Please enter accounts to add.';
+            addStatusMessageDiv.classList.remove('hidden');
             return;
         }
 
-        const accountsText = bulkAccountsInput.value;
-        const lines = accountsText.split('\n');
-        
         addBulkBtn.disabled = true;
         addBulkBtn.textContent = 'Adding...';
         addStatusMessageDiv.classList.add('hidden');
 
-        const successCount = 0;
-        const errorCount = 0;
+        try {
+            const response = await fetch('/api/get-account', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ accounts: accountsText }),
+            });
 
-        for (const line of lines) {
-            const [username, password] = line.trim().split(':');
-            if (username && password) {
-                try {
-                    await sql`INSERT INTO accounts (username, password, used) VALUES (${username}, ${password}, false);`;
-                    successCount++;
-                } catch (error) {
-                    console.error('Error adding account:', error);
-                    errorCount++;
-                }
+            const data = await response.json();
+            
+            if (data.status === 'ok') {
+                showModal(`Successfully added ${data.successCount} account(s).`);
+            } else {
+                addStatusMessageDiv.textContent = data.message;
+                addStatusMessageDiv.classList.remove('hidden');
             }
-        }
 
-        if (successCount > 0) {
-            showModal(`Successfully added ${successCount} account(s).`);
-        } else {
-            addStatusMessageDiv.textContent = 'No accounts were added. Please check the format.';
+        } catch (error) {
+            console.error('Error adding accounts:', error);
+            addStatusMessageDiv.textContent = 'Error: An unexpected error occurred. Please try again later.';
             addStatusMessageDiv.classList.remove('hidden');
+        } finally {
+            bulkAccountsInput.value = '';
+            addBulkBtn.disabled = false;
+            addBulkBtn.textContent = 'Add Accounts';
         }
-
-        bulkAccountsInput.value = '';
-        addBulkBtn.disabled = false;
-        addBulkBtn.textContent = 'Add Accounts';
     }
 
     function switchView(view) {
